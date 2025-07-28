@@ -5,10 +5,11 @@ import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import requests
+import os
 
 app = FastAPI()
 
-# CORS Middleware - allow all for demo, adjust in prod
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,12 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Model setup
 MODEL_URL = "https://github.com/pauline12ish34/summative_linear_regression/releases/download/v1.0.0/best_model.pkl"
 MODEL_DIR = Path("models")
 MODEL_PATH = MODEL_DIR / "best_model.pkl"
-
-model = None  # Global model variable
-
+model = None
 
 class FloodPredictionInput(BaseModel):
     MonsoonIntensity: float
@@ -45,64 +45,39 @@ class FloodPredictionInput(BaseModel):
     InadequatePlanning: float
     PoliticalFactors: float
 
-
 def download_model():
-    """Download the model file from GitHub release if not exists."""
+    """Download the model from GitHub if not present."""
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     if not MODEL_PATH.exists():
-        print(f"Model not found locally. Downloading from {MODEL_URL} ...")
+        print(f"Model not found. Downloading from {MODEL_URL} ...")
         response = requests.get(MODEL_URL)
         if response.status_code == 200:
             with open(MODEL_PATH, "wb") as f:
                 f.write(response.content)
             print("Model downloaded successfully.")
         else:
-            raise RuntimeError(f"Failed to download model, status code {response.status_code}")
+            raise RuntimeError(f"Failed to download model, status code: {response.status_code}")
 
-
-def get_model():
-    """Lazy load the model, download if missing."""
+def load_model():
+    """Load the model from disk."""
     global model
-    if model is None:
-        try:
-            download_model()
-            print("Loading model from disk...")
-            loaded_model = joblib.load(MODEL_PATH)
-            print("Model loaded successfully.")
-            return loaded_model
-        except Exception as e:
-            raise RuntimeError(f"Failed to load model: {str(e)}")
-    return model
+    try:
+        download_model()
+        model = joblib.load(MODEL_PATH)
+        print("✅ Model loaded successfully.")
+    except Exception as e:
+        print(f"❌ Failed to load model: {str(e)}")
+        raise RuntimeError("Could not load model.")
 
+@app.on_event("startup")
+def startup_event():
+    """Runs once when the app starts."""
+    load_model()
 
 @app.post("/predict")
 def predict_flood(data: FloodPredictionInput):
-    global model
-    if model is None:
-        model = get_model()
     try:
-        input_data = np.array([[
-            data.MonsoonIntensity,
-            data.TopographyDrainage,
-            data.RiverManagement,
-            data.Deforestation,
-            data.Urbanization,
-            data.ClimateChange,
-            data.DamsQuality,
-            data.Siltation,
-            data.AgriculturalPractices,
-            data.Encroachments,
-            data.IneffectiveDisasterPreparedness,
-            data.DrainageSystems,
-            data.CoastalVulnerability,
-            data.Landslides,
-            data.Watersheds,
-            data.DeterioratingInfrastructure,
-            data.PopulationScore,
-            data.WetlandLoss,
-            data.InadequatePlanning,
-            data.PoliticalFactors
-        ]])
+        input_data = np.array([[getattr(data, field) for field in data.__fields__]])
         prediction = model.predict(input_data)
         return {"predicted_flood_probability": float(prediction[0])}
     except Exception as e:
