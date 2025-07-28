@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 
 ## 🎯 Mission
 Climate enthusiasts are finding new ways to halt floods and other natural hazards. These natural hazards are disrupting the lives of many people in Rwanda. With the rising temperatures and unprecedented rains, Rwanda, whose large population depends on agriculture, is no longer getting enough meals. 
