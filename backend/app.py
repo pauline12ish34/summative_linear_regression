@@ -101,9 +101,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define model download
+# Define model  download https://drive.google.com/file/d/1SEESZqDKFh_ba102alaJqoK9_ezh56N2/view?usp=sharing
 MODEL_PATH = "best_model.pkl"
-GOOGLE_DRIVE_FILE_ID = "1jssLK_tsNBMQ3RhY6AXQ4F9RIULuVm2i"
+GOOGLE_DRIVE_FILE_ID = "1SEESZqDKFh_ba102alaJqoK9_ezh56N2"
 MODEL_URL = f"https://drive.google.com/uc?id={GOOGLE_DRIVE_FILE_ID}"
 
 # Download if model file doesn't exist
