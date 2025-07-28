@@ -19,8 +19,6 @@ https://www.kaggle.com/datasets/naiyakhalid/flood-prediction-dataset
 ## Link To video demo
 https://www.youtube.com/watch?v=SeXy5xcjycU
 
-![Flood Prediction Dashboard](screenshots/dashboard.png)  
-*Example prediction interface*
 
 ## 🚀 Features
 - Real-time flood risk prediction
