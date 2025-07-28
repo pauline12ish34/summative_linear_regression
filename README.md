@@ -38,7 +38,7 @@ https://www.youtube.com/watch?v=SeXy5xcjycU
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/flood-prediction.git
-cd flood-prediction
+cd summative-_linear_regression
 
 # Create virtual environment
 python -m venv .venv
