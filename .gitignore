@@ -1,0 +1,5 @@
+best_model.pkl
+*.pkl
+venv/
+__pycache__/
+.env
