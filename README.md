@@ -9,6 +9,13 @@ Climate enthusiasts are finding new ways to halt floods and other natural hazard
 
 My mission is to contribute to solving climate change issues through software engineering. My exposure to coding at ALU has inspired me to develop systems that address community challenges. This flood prediction system aims to provide early warnings to vulnerable communities.
 
+## Source of Dataset
+https://www.kaggle.com/datasets/naiyakhalid/flood-prediction-dataset
+
+!<img width="694" height="456" alt="image" src="https://github.com/user-attachments/assets/278236e2-4203-406c-a2c0-6834afa6b527" />
+
+
+
 ![Flood Prediction Dashboard](screenshots/dashboard.png)  
 *Example prediction interface*
 
