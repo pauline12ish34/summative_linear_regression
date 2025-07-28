@@ -1,102 +1,109 @@
-import os
-import aiohttp
-import joblib
-
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import joblib
+import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-
+import requests
 
 app = FastAPI()
 
-# Configuration
+# CORS Middleware - allow all for demo, adjust in prod
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 MODEL_URL = "https://github.com/pauline12ish34/summative_linear_regression/releases/download/v1.0.0/best_model.pkl"
-MODEL_PATH = Path("models/best_model.pkl")
-CHUNK_SIZE = 8192  # Download chunk size in bytes
+MODEL_DIR = Path("models")
+MODEL_PATH = MODEL_DIR / "best_model.pkl"
 
-class ModelLoader:
-    _instance = None
-    model = None
+model = None  # Global model variable
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
-    async def download_model(self):
-        """Async download from GitHub Releases"""
-        MODEL_PATH.parent.mkdir(exist_ok=True)
-        
-        if not MODEL_PATH.exists():
-            print("Downloading model from GitHub Releases...")
-            async with aiohttp.ClientSession() as session:
-                async with session.get(MODEL_URL) as response:
-                    if response.status == 200:
-                        with open(MODEL_PATH, 'wb') as f:
-                            while True:
-                                chunk = await response.content.read(CHUNK_SIZE)
-                                if not chunk:
-                                    break
-                                f.write(chunk)
-                        print("Model downloaded successfully")
-                    else:
-                        raise HTTPException(
-                            status_code=500,
-                            detail=f"Failed to download model: HTTP {response.status}"
-                        )
+class FloodPredictionInput(BaseModel):
+    MonsoonIntensity: float
+    TopographyDrainage: float
+    RiverManagement: float
+    Deforestation: float
+    Urbanization: float
+    ClimateChange: float
+    DamsQuality: float
+    Siltation: float
+    AgriculturalPractices: float
+    Encroachments: float
+    IneffectiveDisasterPreparedness: float
+    DrainageSystems: float
+    CoastalVulnerability: float
+    Landslides: float
+    Watersheds: float
+    DeterioratingInfrastructure: float
+    PopulationScore: float
+    WetlandLoss: float
+    InadequatePlanning: float
+    PoliticalFactors: float
 
-    async def load_model(self):
-        """Load model into memory"""
-        if not MODEL_PATH.exists():
-            await self.download_model()
-        
+
+def download_model():
+    """Download the model file from GitHub release if not exists."""
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    if not MODEL_PATH.exists():
+        print(f"Model not found locally. Downloading from {MODEL_URL} ...")
+        response = requests.get(MODEL_URL)
+        if response.status_code == 200:
+            with open(MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print("Model downloaded successfully.")
+        else:
+            raise RuntimeError(f"Failed to download model, status code {response.status_code}")
+
+
+def get_model():
+    """Lazy load the model, download if missing."""
+    global model
+    if model is None:
         try:
-            self.model = joblib.load(MODEL_PATH)
-            print("Model loaded successfully")
+            download_model()
+            print("Loading model from disk...")
+            loaded_model = joblib.load(MODEL_PATH)
+            print("Model loaded successfully.")
+            return loaded_model
         except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Model loading failed: {str(e)}"
-            )
+            raise RuntimeError(f"Failed to load model: {str(e)}")
+    return model
 
-# Initialize model on startup
-@app.on_event("startup")
-async def startup_event():
-    loader = ModelLoader()
-    await loader.load_model()
-
-@app.get("/model-info")
-async def model_info():
-    """Check model status"""
-    return {
-        "model_loaded": ModelLoader().model is not None,
-        "model_path": str(MODEL_PATH),
-        "model_size": f"{os.path.getsize(MODEL_PATH) / (1024 * 1024):.2f} MB" 
-        if MODEL_PATH.exists() else None
-    }
 
 @app.post("/predict")
-async def predict(features: dict):
-    """Make predictions"""
-    if ModelLoader().model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-    
+def predict_flood(data: FloodPredictionInput):
+    global model
+    if model is None:
+        model = get_model()
     try:
-        # Add your preprocessing here
-        processed_features = preprocess(features)
-        prediction = ModelLoader().model.predict([processed_features])
-        return {"prediction": prediction.tolist()[0]}
+        input_data = np.array([[
+            data.MonsoonIntensity,
+            data.TopographyDrainage,
+            data.RiverManagement,
+            data.Deforestation,
+            data.Urbanization,
+            data.ClimateChange,
+            data.DamsQuality,
+            data.Siltation,
+            data.AgriculturalPractices,
+            data.Encroachments,
+            data.IneffectiveDisasterPreparedness,
+            data.DrainageSystems,
+            data.CoastalVulnerability,
+            data.Landslides,
+            data.Watersheds,
+            data.DeterioratingInfrastructure,
+            data.PopulationScore,
+            data.WetlandLoss,
+            data.InadequatePlanning,
+            data.PoliticalFactors
+        ]])
+        prediction = model.predict(input_data)
+        return {"predicted_flood_probability": float(prediction[0])}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-def preprocess(input_data: dict) -> list:
-    """Example preprocessing - customize for your model"""
-    return [
-        float(input_data.get("feature1", 0)),
-        float(input_data.get("feature2", 0)),
-        # Add other features
-    ]
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
