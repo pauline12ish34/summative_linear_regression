@@ -42,17 +42,20 @@ pip install -r requirements.txt
 🖥️ Running the Application
 bash
 # Start FastAPI server
+```bash
 cd backend
 uvicorn app:app --reload
 Access the API at:
 🔗 http://localhost:8000
 📚 Interactive docs: http://localhost:8000/docs
+```
 
 🖥️ Running the mobile Application
 bash
 # Start FastAPI server
+```bash
 cd mobo-flood-app
 flutter pub get
 flutter run
-
+```
 
