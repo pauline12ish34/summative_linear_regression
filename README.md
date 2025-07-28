@@ -14,7 +14,10 @@ https://www.kaggle.com/datasets/naiyakhalid/flood-prediction-dataset
 
 !<img width="694" height="456" alt="image" src="https://github.com/user-attachments/assets/278236e2-4203-406c-a2c0-6834afa6b527" />
 
+!<img width="690" height="537" alt="image" src="https://github.com/user-attachments/assets/e534ba1b-0396-44a6-89d7-2970c723fcf4" />
 
+## Link To video demo
+https://www.youtube.com/watch?v=SeXy5xcjycU
 
 ![Flood Prediction Dashboard](screenshots/dashboard.png)  
 *Example prediction interface*
